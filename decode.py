@@ -4,6 +4,7 @@ Created on Sun Jun 17 21:46:35 2018
 
 @author: Grzesiek-UC
 """
+#!/usr/bin/python
 
 import sys, getopt
 from PIL import Image
@@ -26,16 +27,16 @@ def decryptFlat(channel):
     bits = 0
     chars = 0
     output = ""
-    l = []
+    byteList = []
     for idx, byte in enumerate(channel):
         chars += testBit(channel[idx], 0)<<bits
         bits = (bits + 1) % 8
         if bits == 0:
             output += chr(chars)
-            l.append(chars)
+            byteList.append(chars)
             chars = 0
         if output.find("</data>") != -1:
-            return output[6:output.index('</data>')], l[6:output.index('</data>')]
+            return output[6:output.index('</data>')], byteList[6:output.index('</data>')]
     return "error - no data"
 
 def main(argv):
@@ -59,12 +60,12 @@ def main(argv):
    imgArray = np.array(imgIn)
    imgArray = imgArray.reshape(-1)
    
-   output, list_ = decryptFlat(imgArray)
-   list_ = bytearray(list_)
-   print('hidden message: ', list_.decode('cp1250'))
+   output, byteList = decryptFlat(imgArray)
+   byteList = bytearray(byteList)
+   print('hidden message: ', byteList.decode('cp1250'))
    
    file = open(textfile, 'wb')
-   for byte in list_:
+   for byte in byteList:
        file.write(byte.to_bytes(1, byteorder='big'))
    file.close()
    
