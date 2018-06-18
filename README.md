@@ -17,3 +17,11 @@ decode.py -p picture -t text
 
 Where <i>picture</i> is a file with encoded message and <i>text</i> is output file for message.
 
+<code>
+stego.py -p picture -t text -m mode
+</code>
+
+Combined script. 
+
+<i>mode</i> parameter decides about type of operation: <b>encode</b> writes text into picture and <b>decode</b> extract message from picture file.
+
