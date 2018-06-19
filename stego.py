@@ -37,8 +37,8 @@ def decryptFlat(channels):
             output += chr(chars)
             byteList.append(chars)
             chars = 0
-        if output.find(closeEmbbed) != -1:
-            return output[len(openEmbbed):output.index(closeEmbbed)], byteList[len(openEmbbed):output.index(closeEmbbed)]
+            if output.find(closeEmbbed) != -1:
+                return output[len(openEmbbed):output.index(closeEmbbed)], byteList[len(openEmbbed):output.index(closeEmbbed)]
     return "error - no data"
 
 def encryptFlat(channels, information):
