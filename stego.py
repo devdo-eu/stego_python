@@ -2,13 +2,16 @@
 """
 Created on Mon Jun 18 17:10:29 2018
 
-@author: Grzesiek-UC
+@author: Grzesiek-DevDoBlog {devdo.eu}
 """
 
 import sys, getopt
 from PIL import Image
 import numpy as np
 from math import floor
+
+openEmbbed = "<data>"
+closeEmbbed = "</data>"
 
 def setBit(var, offset):
     mask = 1 << offset
@@ -22,30 +25,30 @@ def testBit(var, offset):
     mask = 1 << offset
     return(var & mask)
 
-def decryptFlat(channel):
+def decryptFlat(channels):
     bits = 0
     chars = 0
     output = ""
-    l = []
-    for idx, byte in enumerate(channel):
-        chars += testBit(channel[idx], 0)<<bits
+    byteList = []
+    for idx, byte in enumerate(channels):
+        chars += testBit(channels[idx], 0)<<bits
         bits = (bits + 1) % 8
         if bits == 0:
             output += chr(chars)
-            l.append(chars)
+            byteList.append(chars)
             chars = 0
-        if output.find("</data>") != -1:
-            return output[6:output.index('</data>')], l[6:output.index('</data>')]
+        if output.find(closeEmbbed) != -1:
+            return output[len(openEmbbed):output.index(closeEmbbed)], byteList[len(openEmbbed):output.index(closeEmbbed)]
     return "error - no data"
 
-def encryptFlat(channel, information):
+def encryptFlat(channels, information):
     bits = 0
     chars = 0
-    for idx, byte in enumerate(channel):
+    for idx, byte in enumerate(channels):
         if testBit(information[chars], bits):
-            channel[idx] = setBit(channel[idx], 0)
+            channels[idx] = setBit(channels[idx], 0)
         else:
-            channel[idx] = clearBit(channel[idx], 0)
+            channels[idx] = clearBit(channels[idx], 0)
                 
         bits = (bits + 1) % 8
         if bits == 0:
@@ -74,12 +77,13 @@ def main(argv):
             textfile = arg
         elif opt in ("-m", "--mode"):
             mode = arg
+            
+    imgIn = Image.open(picfile)
+    imgArray = np.array(imgIn)
+    shape = imgArray.shape
+    imgArray = imgArray.reshape(-1)
     
-    if mode == "decode":
-        imgIn = Image.open(picfile)
-        imgArray = np.array(imgIn)
-        imgArray = imgArray.reshape(-1)
-       
+    if mode == "decode":       
         output, list_ = decryptFlat(imgArray)
         list_ = bytearray(list_)
         print('hidden message: ', list_.decode('cp1250'))
@@ -94,15 +98,12 @@ def main(argv):
     elif mode == "encode":
         textfile = open(textfile)
         text = textfile.read()
-        text = "<data>" + text + "</data>"
-        text = bytearray(text.encode('cp1250'))
         textfile.close()
+        text = openEmbbed + text + closeEmbbed
+        text = bytearray(text.encode('cp1250'))
         
-        imgIn = Image.open(picfile)
-        imgArray = np.array(imgIn)
-        shape = imgArray.shape
-        imgArray = imgArray.reshape(-1)
-        capacity = floor(imgArray.size / 8)
+        capacity = floor(imgArray.size / 8) - len(openEmbbed + closeEmbbed)
+        print("You can hide", capacity, "bytes inside this picture")
         if capacity < len(text):
             print("picture is too small to hide such amount of text!")
             sys.exit()
